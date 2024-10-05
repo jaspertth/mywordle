@@ -5,7 +5,9 @@ export const useWordle = (answer: string) => {
   const [round, setRound] = useState<number>(0);
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
   const [currentGuess, setCurrentGuess] = useState<string>("");
-  const [historyGuess, setHstoryGuess] = useState<string[]>([]);
+  const [historyGuesses, setHstoryGuesses] = useState<
+    CharacterWithValidation[][]
+  >([...Array(answer.length)]);
 
   const checkWordExist = async (word: string) => {
     const response = await fetch(
@@ -15,7 +17,7 @@ export const useWordle = (answer: string) => {
     return status === 200;
   };
 
-  const validateGuessByAnswer = () => {
+  const validateGuessByAnswer = (): CharacterWithValidation[] => {
     const validateCharacters = [...currentGuess].map<CharacterWithValidation>(
       (character) => ({ character, validateResult: "absent" })
     );
@@ -54,7 +56,24 @@ export const useWordle = (answer: string) => {
       }
     }
 
+    if (currentGuess === answer) {
+      setIsCorrect(true);
+    }
+
+    setRound((prev) => prev + 1);
+
     return validateCharacters;
+  };
+
+  const addValidatedGuessToHistoryGuess = (
+    validatedGuess: CharacterWithValidation[]
+  ) => {
+    setHstoryGuesses((prev) => {
+      let newGuess = [...prev];
+      newGuess[round] = validatedGuess;
+      return newGuess;
+    });
+    setCurrentGuess("");
   };
 
   const handleKeyup = async (event: KeyboardEvent) => {
@@ -81,8 +100,8 @@ export const useWordle = (answer: string) => {
         return;
       }
 
-      const validated = validateGuessByAnswer();
-      console.log(validated)
+      const validatedGuess = validateGuessByAnswer();
+      addValidatedGuessToHistoryGuess(validatedGuess);
     } else {
       const isAlphabetKey = /^[A-Za-z]$/.test(key);
 
@@ -93,5 +112,5 @@ export const useWordle = (answer: string) => {
     }
   };
 
-  return { round, isCorrect, currentGuess, historyGuess, handleKeyup };
+  return { round, isCorrect, currentGuess, historyGuesses, handleKeyup };
 };
