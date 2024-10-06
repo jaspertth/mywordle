@@ -6,7 +6,7 @@ export const Row: React.FC<RowProps> = ({ historyGuess, currentGuess }) => {
   if (!!currentGuess) {
     const currentGuessCharacters = currentGuess.split("");
     return (
-      <div className="row">
+      <div className="row current">
         {currentGuessCharacters.map((c, i) => (
           <Square key={i} inputCharacter={c} />
         ))}
@@ -19,7 +19,7 @@ export const Row: React.FC<RowProps> = ({ historyGuess, currentGuess }) => {
     );
   }
   return (
-    <div className="row">
+    <div className="row history">
       {Array.from({ length: 5 }).map((_, i) => (
         <Square key={i} characterWithValidation={historyGuess?.[i]} />
       ))}

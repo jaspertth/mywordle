@@ -15,21 +15,74 @@
   font-size: 2.5em;
 }
 
-.row > div.input {
-  border-color: #000000;
+.row.current > div.input {
+  animation: virbrating 0.1s ease-in-out forwards;
 }
 
 .row > div.correct {
-  background: #38cb82;
-  border-color: #38cb82;
+  --background-color: #38cb82;
+  --border-color: #38cb82;
+  animation: fliping 0.3s ease forwards;
 }
 
 .row > div.present {
-  background: #d4d400;
-  border-color: #d4d400;
+  --background-color: #d4d400;
+  --border-color: #d4d400;
+  animation: fliping 0.3s ease forwards;
 }
 
 .row > div.absent {
-  background: #D3D3D3;
-  border-color: #D3D3D3;
+  --background-color: #5f5f5f;
+  --border-color: #5f5f5f;
+  animation: fliping 0.3s ease forwards;
+}
+
+.row > div:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.row > div:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.row > div:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+.row > div:nth-child(5) {
+  animation-delay: 1.2s;
+}
+
+@keyframes fliping {
+  0% {
+    transform: rotateX(0);
+  }
+  45% {
+    transform: rotateX(90deg);
+  }
+  55% {
+    transform: rotateX(90deg);
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+    color: #ffffff;
+  }
+  100% {
+    transform: rotateX(0);
+    background: var(--background-color);
+    border-color: var(--border-color);
+    color: #ffffff;
+  }
+}
+
+@keyframes virbrating {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    border-color: #000000;
+  }
 }
