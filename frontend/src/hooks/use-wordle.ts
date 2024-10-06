@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { CharacterWithValidation } from "./interface";
+import React, { useContext, useState } from "react";
+import { CharacterWithValidation, UsedAlphabets } from "./interface";
+import { ValidateResult } from "./const";
+import { ToastContext } from "../providers/toast-provider";
 
 export const useWordle = (answer: string) => {
   const [round, setRound] = useState<number>(0);
@@ -8,6 +10,9 @@ export const useWordle = (answer: string) => {
   const [historyGuesses, setHstoryGuesses] = useState<
     CharacterWithValidation[][]
   >([...Array(answer.length)]);
+  const [usedAlphabets, setUsedAlphabets] = useState<UsedAlphabets>({});
+
+  const { updateContent } = useContext(ToastContext);
 
   const checkWordExist = async (word: string) => {
     const response = await fetch(
@@ -18,8 +23,8 @@ export const useWordle = (answer: string) => {
   };
 
   const validateGuessByAnswer = (): CharacterWithValidation[] => {
-    const validateCharacters = [...currentGuess].map<CharacterWithValidation>(
-      (character) => ({ character, validateResult: "absent" })
+    const validatedCharacters = [...currentGuess].map<CharacterWithValidation>(
+      (character) => ({ character, validateResult: ValidateResult.Absent })
     );
 
     // tracking a single character frequency in the word
@@ -36,25 +41,52 @@ export const useWordle = (answer: string) => {
     }
 
     // handle "correct"
-    for (let i = 0; i < validateCharacters.length; i++) {
-      const validateChar = validateCharacters[i];
-      if (validateChar.character === answer[i]) {
-        validateChar.validateResult = "correct";
-        characterFrequencies[validateChar.character]--;
+    for (let i = 0; i < validatedCharacters.length; i++) {
+      const validatedChar = validatedCharacters[i];
+      if (validatedChar.character === answer[i]) {
+        validatedChar.validateResult = ValidateResult.Correct;
+        characterFrequencies[validatedChar.character]--;
       }
     }
 
     // handle "present"
-    for (let i = 0; i < validateCharacters.length; i++) {
-      const validateChar = validateCharacters[i];
+    for (let i = 0; i < validatedCharacters.length; i++) {
+      const validatedChar = validatedCharacters[i];
       if (
-        validateChar.validateResult !== "correct" &&
-        characterFrequencies[validateChar.character] > 0
+        validatedChar.validateResult !== ValidateResult.Correct &&
+        characterFrequencies[validatedChar.character] > 0
       ) {
-        validateChar.validateResult = "present";
-        characterFrequencies[validateChar.character]--;
+        validatedChar.validateResult = ValidateResult.Present;
+        characterFrequencies[validatedChar.character]--;
       }
     }
+
+    setUsedAlphabets((prev) => {
+      const newUsedAlphabets = prev;
+      validatedCharacters.forEach((validatedChar) => {
+        const prevValidatedResult = newUsedAlphabets[validatedChar.character];
+        switch (validatedChar.validateResult) {
+          case ValidateResult.Correct:
+            newUsedAlphabets[validatedChar.character] = ValidateResult.Correct;
+            break;
+          case ValidateResult.Present:
+            if (prevValidatedResult !== ValidateResult.Correct) {
+              newUsedAlphabets[validatedChar.character] =
+                ValidateResult.Present;
+            }
+            break;
+          case ValidateResult.Absent:
+            if (
+              prevValidatedResult !== ValidateResult.Correct &&
+              prevValidatedResult !== ValidateResult.Present
+            ) {
+              newUsedAlphabets[validatedChar.character] = ValidateResult.Absent;
+            }
+            break;
+        }
+      });
+      return newUsedAlphabets;
+    });
 
     if (currentGuess === answer) {
       setIsCorrect(true);
@@ -62,7 +94,7 @@ export const useWordle = (answer: string) => {
 
     setRound((prev) => prev + 1);
 
-    return validateCharacters;
+    return validatedCharacters;
   };
 
   const addValidatedGuessToHistoryGuess = (
@@ -83,20 +115,15 @@ export const useWordle = (answer: string) => {
     if (key === "Backspace") {
       setCurrentGuess((prev) => prev.slice(0, -1));
     } else if (key === "Enter") {
-      const isWithinMaxRound = round < 6;
-      if (!isWithinMaxRound) {
-        console.log("You have used all chances");
-        return;
-      }
-
+      
       if (!isCurrentGuessMaxLength) {
-        console.log("Not enough letters");
+        updateContent("Not enough letters", 1500);
         return;
       }
 
       const isWordExist = await checkWordExist(currentGuess);
       if (!isWordExist) {
-        console.log("Word not exist");
+        updateContent("Word not exist", 1500);
         return;
       }
 
@@ -112,5 +139,12 @@ export const useWordle = (answer: string) => {
     }
   };
 
-  return { round, isCorrect, currentGuess, historyGuesses, handleKeyup };
+  return {
+    round,
+    isCorrect,
+    currentGuess,
+    historyGuesses,
+    usedAlphabets,
+    handleKeyup,
+  };
 };

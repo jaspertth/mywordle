@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Wordle } from "./components/wordle";
+import { Toast } from "./components/toast";
+import { ToastProvider } from "./providers/toast-provider";
 
 function App() {
   const [answer, setAnswer] = useState(null);
@@ -15,9 +17,14 @@ function App() {
     fetchWord().then((result) => setAnswer(result[0]));
   }, []);
 
-  return <div className="App">
-     <div>Answer is : {answer}</div>
-    {!!answer && <Wordle answer={answer} />}</div>;
+  return (
+    <ToastProvider>
+      <div className="App">
+        <div>{answer}</div>
+        {!!answer && <Wordle answer={answer} />}
+      </div>
+    </ToastProvider>
+  );
 }
 
 export default App;

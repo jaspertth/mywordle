@@ -1,4 +1,10 @@
+import { ValidateResult } from "./const";
+
 export interface CharacterWithValidation {
   character: string;
-  validateResult: "correct" | "present" | "absent";
+  validateResult: ValidateResult;
+}
+
+export interface UsedAlphabets {
+  [key: string]: ValidateResult;
 }
