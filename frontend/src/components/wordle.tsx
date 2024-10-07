@@ -41,7 +41,7 @@ export const Wordle: React.FC<WordleInputProps> = ({ answer }) => {
         historyGuesses={historyGuesses}
         currentGuess={currentGuess}
       />
-      <Keyboard usedAlphabets={usedAlphabets} />
+      <Keyboard usedAlphabets={usedAlphabets} handleKeyup={handleKeyup} />
 
       <Toast />
     </div>

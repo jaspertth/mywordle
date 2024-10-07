@@ -19,10 +19,7 @@ function App() {
 
   return (
     <ToastProvider>
-      <div className="App">
-        <div>{answer}</div>
-        {!!answer && <Wordle answer={answer} />}
-      </div>
+      <div className="App">{!!answer && <Wordle answer={answer} />}</div>
     </ToastProvider>
   );
 }
