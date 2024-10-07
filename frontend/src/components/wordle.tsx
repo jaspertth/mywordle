@@ -4,11 +4,9 @@ import { Board } from "./board";
 import { Keyboard } from "./keyboard";
 import { Toast } from "./toast";
 import { ToastContext } from "../providers/toast-provider";
+import { envConfig } from "../util";
 
-interface WordleInputProps {
-  answer: string;
-}
-export const Wordle: React.FC<WordleInputProps> = ({ answer }) => {
+export const Wordle: React.FC = () => {
   const {
     round,
     isCorrect,
@@ -16,23 +14,36 @@ export const Wordle: React.FC<WordleInputProps> = ({ answer }) => {
     historyGuesses,
     usedAlphabets,
     handleKeyup,
-  } = useWordle(answer);
+  } = useWordle();
 
   const { updateContent } = useContext(ToastContext);
 
   useEffect(() => {
     window.addEventListener("keyup", handleKeyup);
-    if (isCorrect || round > 5) {
+    if (isCorrect || round >= envConfig().maxRound) {
       window.removeEventListener("keyup", handleKeyup);
     }
     return () => window.removeEventListener("keyup", handleKeyup);
   }, [handleKeyup]);
 
-  if (isCorrect) {
-    updateContent("congrats");
-  } else if (round > 5) {
-    updateContent(answer);
-  }
+  useEffect(() => {
+    const checkGameStatus = async () => {
+      if (isCorrect) {
+        updateContent("Congrats!");
+      } else if (round >= envConfig().maxRound) {
+        const response = await fetch(
+          `${envConfig().serverUrl}/api/get-answer`,
+          {
+            method: "GET",
+          }
+        );
+        const { answer } = await response.json();
+        updateContent(answer);
+      }
+    };
+
+    checkGameStatus();
+  }, [isCorrect, round, updateContent]);
 
   return (
     <div>

@@ -2,24 +2,32 @@ import React, { useEffect, useState } from "react";
 import { Wordle } from "./components/wordle";
 import { Toast } from "./components/toast";
 import { ToastProvider } from "./providers/toast-provider";
+import { envConfig } from "./util";
 
 function App() {
-  const [answer, setAnswer] = useState(null);
+  const [isServerUp, setIsServerUp] = useState(false);
 
-  const fetchWord = async () => {
+  const checkServerHealth = async () => {
     const response = await fetch(
-      "https://random-word-api.herokuapp.com/word?length=5"
+      `${envConfig().serverUrl}/api/check-connection`,
+      {
+        method: "GET",
+      }
     );
-    return await response.json();
+    return response.status;
   };
 
   useEffect(() => {
-    fetchWord().then((result) => setAnswer(result[0]));
+    checkServerHealth().then((result) => setIsServerUp(result === 200));
   }, []);
 
   return (
     <ToastProvider>
-      <div className="App">{!!answer && <Wordle answer={answer} />}</div>
+      {isServerUp && (
+        <div className="App">
+          <Wordle />
+        </div>
+      )}
     </ToastProvider>
   );
 }

@@ -2,14 +2,15 @@ import React, { useContext, useState } from "react";
 import { CharacterWithValidation, UsedAlphabets } from "./interface";
 import { ValidateResult } from "./const";
 import { ToastContext } from "../providers/toast-provider";
+import { envConfig } from "../util";
 
-export const useWordle = (answer: string) => {
+export const useWordle = () => {
   const [round, setRound] = useState<number>(0);
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
   const [currentGuess, setCurrentGuess] = useState<string>("");
   const [historyGuesses, setHstoryGuesses] = useState<
     CharacterWithValidation[][]
-  >([...Array(answer.length)]);
+  >([...Array(envConfig().maxRound)]);
   const [usedAlphabets, setUsedAlphabets] = useState<UsedAlphabets>({});
 
   const { updateContent } = useContext(ToastContext);
@@ -22,44 +23,22 @@ export const useWordle = (answer: string) => {
     return status === 200;
   };
 
-  const validateGuessByAnswer = (): CharacterWithValidation[] => {
-    const validatedCharacters = [...currentGuess].map<CharacterWithValidation>(
-      (character) => ({ character, validateResult: ValidateResult.Absent })
+  const validateGuessByAnswer = async (): Promise<
+    CharacterWithValidation[]
+  > => {
+    const response = await fetch(
+      `${envConfig().serverUrl}/api/check-answer`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ guess: currentGuess }), // Body must be a JSON string
+      }
     );
 
-    // tracking a single character frequency in the word
-    const characterFrequencies: { [key: string]: number } = {};
-
-    // counting each character frequency
-    for (let i = 0; i < answer.length; i++) {
-      const char = answer[i];
-      if (characterFrequencies[char]) {
-        characterFrequencies[char]++;
-      } else {
-        characterFrequencies[char] = 1;
-      }
-    }
-
-    // handle "correct"
-    for (let i = 0; i < validatedCharacters.length; i++) {
-      const validatedChar = validatedCharacters[i];
-      if (validatedChar.character === answer[i]) {
-        validatedChar.validateResult = ValidateResult.Correct;
-        characterFrequencies[validatedChar.character]--;
-      }
-    }
-
-    // handle "present"
-    for (let i = 0; i < validatedCharacters.length; i++) {
-      const validatedChar = validatedCharacters[i];
-      if (
-        validatedChar.validateResult !== ValidateResult.Correct &&
-        characterFrequencies[validatedChar.character] > 0
-      ) {
-        validatedChar.validateResult = ValidateResult.Present;
-        characterFrequencies[validatedChar.character]--;
-      }
-    }
+    const validatedCharacters: CharacterWithValidation[] =
+      await response.json();
 
     setUsedAlphabets((prev) => {
       const newUsedAlphabets = prev;
@@ -88,9 +67,11 @@ export const useWordle = (answer: string) => {
       return newUsedAlphabets;
     });
 
-    if (currentGuess === answer) {
-      setIsCorrect(true);
-    }
+    const isAllCorrect = validatedCharacters.every(
+      (validatedCharacter) =>
+        validatedCharacter.validateResult === ValidateResult.Correct
+    );
+    setIsCorrect(isAllCorrect)
 
     setRound((prev) => prev + 1);
 
@@ -110,12 +91,11 @@ export const useWordle = (answer: string) => {
 
   const handleKeyup = async (event: KeyboardEvent) => {
     const key = event.key;
-    const isCurrentGuessMaxLength = currentGuess.length >= 5;
+    const isCurrentGuessMaxLength = currentGuess.length >= envConfig().maxWordLength;
 
     if (key === "Backspace") {
       setCurrentGuess((prev) => prev.slice(0, -1));
     } else if (key === "Enter") {
-      
       if (!isCurrentGuessMaxLength) {
         updateContent("Not enough letters", 1500);
         return;
@@ -127,7 +107,7 @@ export const useWordle = (answer: string) => {
         return;
       }
 
-      const validatedGuess = validateGuessByAnswer();
+      const validatedGuess = await validateGuessByAnswer();
       addValidatedGuessToHistoryGuess(validatedGuess);
     } else {
       const isAlphabetKey = /^[A-Za-z]$/.test(key);

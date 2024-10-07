@@ -1,6 +1,7 @@
 import React from "react";
 import { Square } from "../square";
 import { RowProps } from "./interface";
+import { envConfig } from "../../util";
 
 export const Row: React.FC<RowProps> = ({ historyGuess, currentGuess }) => {
   if (!!currentGuess) {
@@ -10,7 +11,7 @@ export const Row: React.FC<RowProps> = ({ historyGuess, currentGuess }) => {
         {currentGuessCharacters.map((c, i) => (
           <Square key={i} inputCharacter={c} />
         ))}
-        {Array.from({ length: 5 - currentGuessCharacters.length }).map(
+        {Array.from({ length: envConfig().maxWordLength - currentGuessCharacters.length }).map(
           (_, i) => (
             <Square key={i} />
           )
@@ -20,7 +21,7 @@ export const Row: React.FC<RowProps> = ({ historyGuess, currentGuess }) => {
   }
   return (
     <div className="row history">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: envConfig().maxWordLength }).map((_, i) => (
         <Square key={i} characterWithValidation={historyGuess?.[i]} />
       ))}
     </div>

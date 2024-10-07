@@ -15,7 +15,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
       code: `Key${alphabet}`,
       bubbles: true,
     });
-    handleKeyup(event);
+    window.dispatchEvent(event);
   };
 
   return (
@@ -69,11 +69,13 @@ export const Keyboard: React.FC<KeyboardProps> = ({
             </button>
           );
         })}
-        <button className="key backspace" onClick={() => handleClick("Backspace")}>
+        <button
+          className="key backspace"
+          onClick={() => handleClick("Backspace")}
+        >
           Delete
         </button>
       </div>
     </div>
   );
 };
-
