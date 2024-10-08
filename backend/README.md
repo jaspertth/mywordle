@@ -28,7 +28,7 @@ A backend server for a multiplayer version of the popular word guessing game, Wo
 
 ## Command
 
-To start the server, server will start at `localhost:4000`.
+To start the server at `localhost:4000`.
 
 ```bash
 npm run dev
