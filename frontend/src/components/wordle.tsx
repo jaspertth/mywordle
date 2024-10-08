@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useWordle } from "../hooks/use-wordle";
-import { GameBoard } from "./gameboard";
+import { useWordle } from "../hooks";
+import { GameBoard } from "./game-board";
 import { Keyboard } from "./keyboard";
 import { Toast } from "./toast";
 import { ToastContext } from "../providers/toast-provider";
