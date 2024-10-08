@@ -3,27 +3,29 @@ import dotenv from "dotenv";
 import cron from "node-cron";
 import cors from "cors";
 import path from "path";
-import { loadWordsFromJSON, pickRandomWordFromList } from "./util";
+import http from "http";
+import { envConfig, loadWordsFromJSON, pickRandomWordFromList } from "./util";
 import checkAnswerRouter from "./routes/check-answer";
 import checkConnectionRouter from "./routes/check-connection";
 import getAnswerRouter from "./routes/get-answer";
+import { createSocketIO } from "./socket";
 
 dotenv.config();
 
-const app = express();
+const port = envConfig().port || 4000;
+const dictionaryFilePath = envConfig().dictionaryFilePath;
 
-const port = process.env.PORT || 4000;
-const dictionarFilePath = process.env.DICTIONARY_FILE_PATH
-  ? path.join(__dirname, "..", process.env.DICTIONARY_FILE_PATH!)
-  : path.join(__dirname, "data", "dictionary.json");
-
-const wordList: string[] = loadWordsFromJSON(dictionarFilePath);
+const wordList: string[] = loadWordsFromJSON(dictionaryFilePath);
 let pickedWord = pickRandomWordFromList(wordList);
 
-cron.schedule("* */30 * * * *", () => {
-  pickedWord = pickRandomWordFromList(wordList);
-  console.log(`Word picked: ${pickedWord}`);
-});
+const app = express();
+const server = http.createServer(app);
+const io = createSocketIO(server, wordList);
+
+// cron.schedule("* * * * * *", () => {
+//   pickedWord = pickRandomWordFromList(wordList);
+//   io = createSocketIO(server, pickedWord);
+// });
 
 app.use(express.json());
 
@@ -46,6 +48,4 @@ app.use("/api", checkConnectionRouter);
 app.use("/api", checkAnswerRouter);
 app.use("/api", getAnswerRouter);
 
-app.listen(port, () =>
-  console.log(`Listening port ${port}. Word picked: ${pickedWord}`)
-);
+server.listen(port, () => console.log(`Listening port ${port}.`));

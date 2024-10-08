@@ -3,32 +3,18 @@ import { Wordle } from "./components/wordle";
 import { Toast } from "./components/toast";
 import { ToastProvider } from "./providers/toast-provider";
 import { envConfig } from "./util";
+import { io } from "socket.io-client";
+import { SocketProvider } from "./providers/socket-provider";
 
 function App() {
-  const [isServerUp, setIsServerUp] = useState(false);
-
-  const checkServerHealth = async () => {
-    const response = await fetch(
-      `${envConfig().serverUrl}/api/check-connection`,
-      {
-        method: "GET",
-      }
-    );
-    return response.status;
-  };
-
-  useEffect(() => {
-    checkServerHealth().then((result) => setIsServerUp(result === 200));
-  }, []);
-
   return (
-    <ToastProvider>
-      {isServerUp && (
+    <SocketProvider>
+      <ToastProvider>
         <div className="App">
           <Wordle />
         </div>
-      )}
-    </ToastProvider>
+      </ToastProvider>
+    </SocketProvider>
   );
 }
 

@@ -5,6 +5,7 @@ import { Keyboard } from "./keyboard";
 import { Toast } from "./toast";
 import { ToastContext } from "../providers/toast-provider";
 import { envConfig } from "../util";
+import { SocketContext } from "../providers/socket-provider";
 
 export const Wordle: React.FC = () => {
   const {
@@ -17,6 +18,8 @@ export const Wordle: React.FC = () => {
   } = useWordle();
 
   const { updateContent } = useContext(ToastContext);
+  const { socket } = useContext(SocketContext);
+  const [isPlayerEnough, setIsPlayerEnough] = useState<boolean>(false);
 
   useEffect(() => {
     window.addEventListener("keyup", handleKeyup);
@@ -27,33 +30,52 @@ export const Wordle: React.FC = () => {
   }, [handleKeyup]);
 
   useEffect(() => {
-    const checkGameStatus = async () => {
-      if (isCorrect) {
-        updateContent("Congrats!");
-      } else if (round >= envConfig().maxRound) {
-        const response = await fetch(
-          `${envConfig().serverUrl}/api/get-answer`,
-          {
-            method: "GET",
-          }
-        );
-        const { answer } = await response.json();
-        updateContent(answer);
-      }
-    };
+    if (isCorrect) {
+      updateContent("congrats!");
+    } else if (round >= envConfig().maxRound) {
+      updateContent("waiting for opponent to finish");
+    }
+  }, [isCorrect, round]);
 
-    checkGameStatus();
-  }, [isCorrect, round, updateContent]);
+  useEffect(() => {
+    socket.once("draw", (result) => {
+      updateContent(`Draw. Answer is ${result}`);
+    });
+  }, [updateContent]);
+
+  useEffect(() => {
+    socket.on("isPlayerEnough", (isPlayerEnough: boolean) => {
+      setIsPlayerEnough(isPlayerEnough);
+      if (!isPlayerEnough) {
+        updateContent("waiting for opponent to join");
+      } else {
+        updateContent("");
+      }
+    });
+  }, [socket, updateContent, setIsPlayerEnough]);
+
+  useEffect(() => {
+    socket.on("opponentProgress", (opponentProgress) => {
+      console.log(opponentProgress);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [socket]);
 
   return (
     <div>
-      <Board
-        round={round}
-        historyGuesses={historyGuesses}
-        currentGuess={currentGuess}
-      />
-      <Keyboard usedAlphabets={usedAlphabets} handleKeyup={handleKeyup} />
-
+      {!!socket && isPlayerEnough && (
+        <>
+          <Board
+            round={round}
+            historyGuesses={historyGuesses}
+            currentGuess={currentGuess}
+          />
+          <Keyboard usedAlphabets={usedAlphabets} handleKeyup={handleKeyup} />
+        </>
+      )}
       <Toast />
     </div>
   );

@@ -1,8 +1,9 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { CharacterWithValidation, UsedAlphabets } from "./interface";
 import { ValidateResult } from "./const";
 import { ToastContext } from "../providers/toast-provider";
 import { envConfig } from "../util";
+import { SocketContext } from "../providers/socket-provider";
 
 export const useWordle = () => {
   const [round, setRound] = useState<number>(0);
@@ -14,6 +15,7 @@ export const useWordle = () => {
   const [usedAlphabets, setUsedAlphabets] = useState<UsedAlphabets>({});
 
   const { updateContent } = useContext(ToastContext);
+  const { socket } = useContext(SocketContext);
 
   const checkWordExist = async (word: string) => {
     const response = await fetch(
@@ -23,59 +25,54 @@ export const useWordle = () => {
     return status === 200;
   };
 
-  const validateGuessByAnswer = async (): Promise<
-    CharacterWithValidation[]
-  > => {
-    const response = await fetch(
-      `${envConfig().serverUrl}/api/check-answer`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ guess: currentGuess }), // Body must be a JSON string
-      }
-    );
+  const validateGuessByAnswer = (): Promise<CharacterWithValidation[]> => {
+    return new Promise((resolve) => {
+      socket.emit("playerGuess", currentGuess);
+      socket.once(
+        "validated",
+        (validatedCharacters: CharacterWithValidation[]) => {
+          setUsedAlphabets((prev) => {
+            const newUsedAlphabets = prev;
+            validatedCharacters.forEach((validatedChar) => {
+              const prevValidatedResult =
+                newUsedAlphabets[validatedChar.character];
+              switch (validatedChar.validateResult) {
+                case ValidateResult.Correct:
+                  newUsedAlphabets[validatedChar.character] =
+                    ValidateResult.Correct;
+                  break;
+                case ValidateResult.Present:
+                  if (prevValidatedResult !== ValidateResult.Correct) {
+                    newUsedAlphabets[validatedChar.character] =
+                      ValidateResult.Present;
+                  }
+                  break;
+                case ValidateResult.Absent:
+                  if (
+                    prevValidatedResult !== ValidateResult.Correct &&
+                    prevValidatedResult !== ValidateResult.Present
+                  ) {
+                    newUsedAlphabets[validatedChar.character] =
+                      ValidateResult.Absent;
+                  }
+                  break;
+              }
+            });
+            return newUsedAlphabets;
+          });
 
-    const validatedCharacters: CharacterWithValidation[] =
-      await response.json();
+          const isAllCorrect = validatedCharacters.every(
+            (validatedCharacter) =>
+              validatedCharacter.validateResult === ValidateResult.Correct
+          );
+          setIsCorrect(isAllCorrect);
 
-    setUsedAlphabets((prev) => {
-      const newUsedAlphabets = prev;
-      validatedCharacters.forEach((validatedChar) => {
-        const prevValidatedResult = newUsedAlphabets[validatedChar.character];
-        switch (validatedChar.validateResult) {
-          case ValidateResult.Correct:
-            newUsedAlphabets[validatedChar.character] = ValidateResult.Correct;
-            break;
-          case ValidateResult.Present:
-            if (prevValidatedResult !== ValidateResult.Correct) {
-              newUsedAlphabets[validatedChar.character] =
-                ValidateResult.Present;
-            }
-            break;
-          case ValidateResult.Absent:
-            if (
-              prevValidatedResult !== ValidateResult.Correct &&
-              prevValidatedResult !== ValidateResult.Present
-            ) {
-              newUsedAlphabets[validatedChar.character] = ValidateResult.Absent;
-            }
-            break;
+          setRound((prev) => prev + 1);
+
+          resolve(validatedCharacters);
         }
-      });
-      return newUsedAlphabets;
+      );
     });
-
-    const isAllCorrect = validatedCharacters.every(
-      (validatedCharacter) =>
-        validatedCharacter.validateResult === ValidateResult.Correct
-    );
-    setIsCorrect(isAllCorrect)
-
-    setRound((prev) => prev + 1);
-
-    return validatedCharacters;
   };
 
   const addValidatedGuessToHistoryGuess = (
@@ -91,7 +88,8 @@ export const useWordle = () => {
 
   const handleKeyup = async (event: KeyboardEvent) => {
     const key = event.key;
-    const isCurrentGuessMaxLength = currentGuess.length >= envConfig().maxWordLength;
+    const isCurrentGuessMaxLength =
+      currentGuess.length >= envConfig().maxWordLength;
 
     if (key === "Backspace") {
       setCurrentGuess((prev) => prev.slice(0, -1));
