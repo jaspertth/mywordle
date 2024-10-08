@@ -1,15 +1,15 @@
 import React from "react";
 import { Row } from "../row";
-import { BoardProps } from "./interface";
+import { GameBoardProps } from "./interface";
 import { envConfig } from "../../util";
 
-export const Board: React.FC<BoardProps> = ({
+export const GameBoard: React.FC<GameBoardProps> = ({
   round,
   historyGuesses,
   currentGuess,
 }) => {
   return (
-    <div>
+    <div className="self">
       {Array.from({ length: envConfig().maxRound }).map((_, i) => {
         if (i === round) {
           return <Row key={i} currentGuess={currentGuess} />;

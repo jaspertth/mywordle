@@ -56,15 +56,26 @@ export const handlePlayerGuess = ({
   player.emit("validated", validatedCharacters);
 
   //update the opponent with the validation result only
-  const validationResultOny = validatedCharacters.map(
-    (validatedChar) => validatedChar.validateResult
-  );
-  player.to(gameId!).emit("opponentProgress", validationResultOny);
+  const validationResultOnly = validatedCharacters.map((validatedChar) => ({
+    validatedChar: "",
+    validateResult: validatedChar.validateResult,
+  }));
+  player.to(gameId!).emit("opponentProgress", validationResultOnly);
+
   //handle draw: all players used all chances and both cannot get the answer
   const isAllPlayerUsedChances = Object.values(gameRoom.players).every(
     (historyGuesses) => historyGuesses.length >= envConfig().maxRound
   );
-  if (isAllPlayerUsedChances) {
-    io.to(gameId).emit("draw", gameRoom.pickedWord);
+  const isCurrentGuessCorrect = currentGuess === gameRoom.pickedWord;
+  if (isAllPlayerUsedChances && !isCurrentGuessCorrect) {
+    io.to(gameId).emit("winning", {
+      type: "draw",
+      message: "game draw",
+    });
+  }
+
+  //handle one player win
+  if (!isAllPlayerUsedChances && isCurrentGuessCorrect) {
+    io.to(gameId).emit("winning", { type: "end", message: player.id });
   }
 };

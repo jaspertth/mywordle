@@ -7,8 +7,6 @@ import {
   pickRandomWordFromList,
 } from "../util";
 import * as crypto from "node:crypto";
-import { CharacterWithValidation } from "../routes/check-answer/interface";
-import { ValidateResult } from "../routes/check-answer/const";
 import { handlePlayerGuess } from "./handlePlayerGuess";
 import { handleDisconnect } from "./handleDisconnect";
 
@@ -39,6 +37,7 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
     // join available game room
     const gameRoom = gameRooms[gameId!];
     gameRoom.players[player.id] = [];
+    console.log(gameRoom.pickedWord);
     player.join(gameId);
     const isPlayerEnough =
       Object.keys(gameRoom.players).length === envConfig().requriedPlayers;

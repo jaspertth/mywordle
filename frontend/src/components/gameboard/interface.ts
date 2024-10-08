@@ -1,6 +1,6 @@
 import { CharacterWithValidation } from "../../hooks/interface";
 
-export interface BoardProps {
+export interface GameBoardProps {
   round: number;
   historyGuesses: CharacterWithValidation[][];
   currentGuess: string;

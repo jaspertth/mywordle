@@ -124,7 +124,21 @@ body {
   text-align: center;
   text-transform: uppercase;
 }
+.opponent {
+  position: fixed;
+  right: 1%;
+  top: 1%; 
+}
 
+.opponent > .row {
+  align-items: center;
+  text-align: center;
+}
+
+.opponent > .row > div {
+  width: 30px; 
+  height: 30px;
+}
 @keyframes fliping {
   0% {
     transform: rotateX(0);

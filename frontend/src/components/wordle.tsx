@@ -1,16 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useWordle } from "../hooks/use-wordle";
-import { Board } from "./board";
+import { GameBoard } from "./gameboard";
 import { Keyboard } from "./keyboard";
 import { Toast } from "./toast";
 import { ToastContext } from "../providers/toast-provider";
 import { envConfig } from "../util";
 import { SocketContext } from "../providers/socket-provider";
+import { OpponentBoard } from "./opponent-board";
+import { CharacterWithValidation } from "../hooks/interface";
 
 export const Wordle: React.FC = () => {
   const {
     round,
-    isCorrect,
+    isGameEnd,
     currentGuess,
     historyGuesses,
     usedAlphabets,
@@ -20,28 +22,25 @@ export const Wordle: React.FC = () => {
   const { updateContent } = useContext(ToastContext);
   const { socket } = useContext(SocketContext);
   const [isPlayerEnough, setIsPlayerEnough] = useState<boolean>(false);
+  const [opponentHistoryGuesses, setOpponentHistoryGuesses] = useState<
+    CharacterWithValidation[][]
+  >([]);
 
   useEffect(() => {
     window.addEventListener("keyup", handleKeyup);
-    if (isCorrect || round >= envConfig().maxRound) {
+
+    if (isGameEnd) {
       window.removeEventListener("keyup", handleKeyup);
     }
+
     return () => window.removeEventListener("keyup", handleKeyup);
-  }, [handleKeyup]);
+  }, [handleKeyup, socket, updateContent]);
 
   useEffect(() => {
-    if (isCorrect) {
-      updateContent("congrats!");
-    } else if (round >= envConfig().maxRound) {
+    if (round >= envConfig().maxRound) {
       updateContent("waiting for opponent to finish");
     }
-  }, [isCorrect, round]);
-
-  useEffect(() => {
-    socket.once("draw", (result) => {
-      updateContent(`Draw. Answer is ${result}`);
-    });
-  }, [updateContent]);
+  }, [round]);
 
   useEffect(() => {
     socket.on("isPlayerEnough", (isPlayerEnough: boolean) => {
@@ -52,15 +51,23 @@ export const Wordle: React.FC = () => {
         updateContent("");
       }
     });
+    return () => {
+      socket.off("isPlayerEnough");
+    };
   }, [socket, updateContent, setIsPlayerEnough]);
 
   useEffect(() => {
-    socket.on("opponentProgress", (opponentProgress) => {
-      console.log(opponentProgress);
-    });
+    socket.on(
+      "opponentProgress",
+      (opponentProgress: CharacterWithValidation[]) => {
+        setOpponentHistoryGuesses((prev) => {
+          return [...prev, opponentProgress];
+        });
+      }
+    );
 
     return () => {
-      socket.disconnect();
+      socket.off("opponentProgress");
     };
   }, [socket]);
 
@@ -68,12 +75,13 @@ export const Wordle: React.FC = () => {
     <div>
       {!!socket && isPlayerEnough && (
         <>
-          <Board
+          <GameBoard
             round={round}
             historyGuesses={historyGuesses}
             currentGuess={currentGuess}
           />
           <Keyboard usedAlphabets={usedAlphabets} handleKeyup={handleKeyup} />
+          <OpponentBoard opponentHistoryGuesses={opponentHistoryGuesses} />
         </>
       )}
       <Toast />

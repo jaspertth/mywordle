@@ -7,7 +7,7 @@ import { SocketContext } from "../providers/socket-provider";
 
 export const useWordle = () => {
   const [round, setRound] = useState<number>(0);
-  const [isCorrect, setIsCorrect] = useState<boolean>(false);
+  const [isGameEnd, setIsGameEnd] = useState<boolean>(false);
   const [currentGuess, setCurrentGuess] = useState<string>("");
   const [historyGuesses, setHstoryGuesses] = useState<
     CharacterWithValidation[][]
@@ -61,17 +61,25 @@ export const useWordle = () => {
             return newUsedAlphabets;
           });
 
-          const isAllCorrect = validatedCharacters.every(
-            (validatedCharacter) =>
-              validatedCharacter.validateResult === ValidateResult.Correct
-          );
-          setIsCorrect(isAllCorrect);
-
           setRound((prev) => prev + 1);
 
           resolve(validatedCharacters);
         }
       );
+      socket.once("winning", ({ type, message }) => {
+        if (type === "draw") {
+          console.log("message", message);
+          updateContent(message);
+        } else if (type === "end") {
+          if (message === socket.id) {
+            updateContent("you won");
+          } else {
+            updateContent("you lost");
+          }
+        }
+
+        setIsGameEnd(true);
+      });
     });
   };
 
@@ -119,7 +127,7 @@ export const useWordle = () => {
 
   return {
     round,
-    isCorrect,
+    isGameEnd,
     currentGuess,
     historyGuesses,
     usedAlphabets,

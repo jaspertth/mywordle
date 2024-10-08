@@ -23,3 +23,7 @@ export interface handleDisconnectParams {
   io: Server;
   gameId: string;
 }
+
+export interface handleWinningParams {
+  gameRoom: GameRooms["gameRoomId"];
+}

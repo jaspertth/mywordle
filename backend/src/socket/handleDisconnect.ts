@@ -12,4 +12,5 @@ export const handleDisconnect = ({
     io.sockets.sockets.get(opponentId)?.disconnect(true);
   }
   delete gameRooms[gameId];
+  return true;
 };
