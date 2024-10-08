@@ -28,7 +28,7 @@ const countCharacterFrequencies = (word: string): { [key: string]: number } => {
  * @param {string} pickedWord - The word chosen by the game.
  * @returns {ValidatedCharacter[]} - The array of validated characters.
  */
-const validateGuess = (
+export const validateGuess = (
   currentGuess: string,
   pickedWord: string
 ): ValidatedCharacter[] => {
