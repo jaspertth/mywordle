@@ -3,8 +3,8 @@ import { Server } from "socket.io";
 import { GameRooms } from "./interface";
 import { findAvailableGameRoom, pickRandomWordFromList } from "../util";
 import * as crypto from "node:crypto";
-import { handlePlayerGuess } from "./handler/handlePlayerGuess";
-import { handleDisconnect } from "./handler/handleDisconnect";
+import { handlePlayerGuess } from "./handler/handle-player-guess";
+import { handleDisconnect } from "./handler/handle-disconnect";
 import { envConfig } from "../config";
 
 /**
