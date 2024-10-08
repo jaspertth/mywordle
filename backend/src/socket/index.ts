@@ -1,17 +1,21 @@
 import http from "http";
 import { Server } from "socket.io";
 import { GameRooms } from "./interface";
-import {
-  envConfig,
-  findAvailableGameRoom,
-  pickRandomWordFromList,
-} from "../util";
+import { findAvailableGameRoom, pickRandomWordFromList } from "../util";
 import * as crypto from "node:crypto";
 import { handlePlayerGuess } from "./handler/handlePlayerGuess";
 import { handleDisconnect } from "./handler/handleDisconnect";
+import { envConfig } from "../config";
 
+/**
+ * Initializes Socket.IO server and manages game room logic.
+ *
+ * @param {http.Server} server - The HTTP server instance.
+ * @param {string[]} wordList - List of available words for the game.
+ * @returns {Server} The Socket.IO server instance.
+ */
 export const createSocketIO = (server: http.Server, wordList: string[]) => {
-  // Resolving CORS error
+  // Configure server with CORS enabled
   const io = new Server(server, {
     cors: {
       origin: "*",
@@ -22,10 +26,9 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
   const gameRooms: GameRooms = {};
 
   io.on("connection", (player) => {
-    console.log("player connected, id: ", player.id);
     player.emit("playerId", player.id);
 
-    // Check if there is an available game room, if no create one
+    // Find or create a new game room
     let gameId = findAvailableGameRoom(gameRooms);
     if (!gameId) {
       gameId = crypto.randomUUID();
@@ -35,10 +38,12 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
       };
     }
 
-    // join available game room
     const gameRoom = gameRooms[gameId!];
+
+    // Add the player to the game room
     gameRoom.players[player.id] = [];
     player.join(gameId);
+
     const isPlayerEnough =
       Object.keys(gameRoom.players).length === envConfig().requriedPlayers;
     io.to(gameId).emit("isPlayerEnough", isPlayerEnough);
@@ -46,6 +51,7 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
     player.on("disconnect", () =>
       handleDisconnect({ gameId: gameId!, gameRooms, io, player })
     );
+
     player.on("playerGuess", (currentGuess: string) =>
       handlePlayerGuess({ player, currentGuess, gameRoom, io, gameId: gameId! })
     );

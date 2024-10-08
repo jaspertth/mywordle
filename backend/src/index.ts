@@ -1,8 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import http from "http";
-import { envConfig, loadWordsFromJSON } from "./util";
+import { loadWordsFromJSON } from "./util";
 import { createSocketIO } from "./socket";
+import { envConfig } from "./config";
 
 dotenv.config();
 

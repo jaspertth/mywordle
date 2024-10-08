@@ -1,14 +1,37 @@
-import { envConfig } from "../../util";
+import { Server, Socket } from "socket.io";
+import { envConfig } from "../../config";
 import { ValidateResult } from "../const";
-import { HandlePlayerGuessParams, ValidatedCharacter } from "../interface";
+import {
+  GameRooms,
+  HandlePlayerGuessParams,
+  ValidatedCharacter,
+} from "../interface";
 
-export const handlePlayerGuess = ({
-  player,
-  currentGuess,
-  gameRoom,
-  io,
-  gameId,
-}: HandlePlayerGuessParams) => {
+/**
+ * Counts the frequency of each character in the given word.
+ *
+ * @param {string} word - The word for which to count character frequencies.
+ * @returns {Object} - An object with characters as keys and their counts as values.
+ */
+const countCharacterFrequencies = (word: string): { [key: string]: number } => {
+  const frequencies: { [key: string]: number } = {};
+  for (const char of word) {
+    frequencies[char] = (frequencies[char] || 0) + 1;
+  }
+  return frequencies;
+};
+
+/**
+ * Validates the player's guess against the picked word.
+ *
+ * @param {string} currentGuess - The word guessed by the player.
+ * @param {string} pickedWord - The word chosen by the game.
+ * @returns {ValidatedCharacter[]} - The array of validated characters.
+ */
+const validateGuess = (
+  currentGuess: string,
+  pickedWord: string
+): ValidatedCharacter[] => {
   const validatedCharacters = [...currentGuess].map<ValidatedCharacter>(
     (character) => ({
       character,
@@ -16,29 +39,19 @@ export const handlePlayerGuess = ({
     })
   );
 
-  // tracking a single character frequency in the word
-  const characterFrequencies: { [key: string]: number } = {};
+  const characterFrequencies: { [key: string]: number } =
+    countCharacterFrequencies(pickedWord);
 
-  // counting each character frequency
-  for (let i = 0; i < gameRoom.pickedWord.length; i++) {
-    const char = gameRoom.pickedWord[i];
-    if (characterFrequencies[char]) {
-      characterFrequencies[char]++;
-    } else {
-      characterFrequencies[char] = 1;
-    }
-  }
-
-  // handle "correct"
+  // Handle "correct" characters
   for (let i = 0; i < validatedCharacters.length; i++) {
     const validatedChar = validatedCharacters[i];
-    if (validatedChar.character === gameRoom.pickedWord[i]) {
+    if (validatedChar.character === pickedWord[i]) {
       validatedChar.validateResult = ValidateResult.Correct;
       characterFrequencies[validatedChar.character]--;
     }
   }
 
-  // handle "present"
+  // Handle "present" characters
   for (let i = 0; i < validatedCharacters.length; i++) {
     const validatedChar = validatedCharacters[i];
     if (
@@ -49,6 +62,54 @@ export const handlePlayerGuess = ({
       characterFrequencies[validatedChar.character]--;
     }
   }
+
+  return validatedCharacters;
+};
+
+/**
+ * Checks the game status to determine if there's a win or draw.
+ *
+ * @param {Server} io - The Socket.IO server instance.
+ * @param {GameRooms["gameRoomId"]} gameRoom - The current game room.
+ * @param {Player} player - The player who made the guess.
+ * @param {string} currentGuess - The word guessed by the player.
+ * @param {string} gameId - The ID of the current game.
+ */
+const checkGameStatus = (
+  io: Server,
+  gameRoom: GameRooms["gameRoomId"],
+  player: Socket,
+  currentGuess: string,
+  gameId: string
+) => {
+  const isAllPlayerUsedChances = Object.values(gameRoom.players).every(
+    (historyGuesses) => historyGuesses.length >= envConfig().maxRound
+  );
+  const isCurrentGuessCorrect = currentGuess === gameRoom.pickedWord;
+
+  // Handle draw situation
+  if (isAllPlayerUsedChances && !isCurrentGuessCorrect) {
+    io.to(gameId).emit("winning", {
+      type: "draw",
+      message: "game draw",
+    });
+  }
+
+  // Handle win situation
+  if (!isAllPlayerUsedChances && isCurrentGuessCorrect) {
+    io.to(gameId).emit("winning", { type: "end", message: player.id });
+  }
+};
+
+export const handlePlayerGuess = ({
+  player,
+  currentGuess,
+  gameRoom,
+  io,
+  gameId,
+}: HandlePlayerGuessParams) => {
+  // Store the validated characters in the player's history
+  const validatedCharacters = validateGuess(currentGuess, gameRoom.pickedWord);
   gameRoom.players[player.id].push(validatedCharacters);
 
   //update the player with the validated characters
@@ -61,20 +122,5 @@ export const handlePlayerGuess = ({
   }));
   player.to(gameId!).emit("opponentProgress", validationResultOnly);
 
-  //handle draw: all players used all chances and both cannot get the answer
-  const isAllPlayerUsedChances = Object.values(gameRoom.players).every(
-    (historyGuesses) => historyGuesses.length >= envConfig().maxRound
-  );
-  const isCurrentGuessCorrect = currentGuess === gameRoom.pickedWord;
-  if (isAllPlayerUsedChances && !isCurrentGuessCorrect) {
-    io.to(gameId).emit("winning", {
-      type: "draw",
-      message: "game draw",
-    });
-  }
-
-  //handle one player win
-  if (!isAllPlayerUsedChances && isCurrentGuessCorrect) {
-    io.to(gameId).emit("winning", { type: "end", message: player.id });
-  }
+  checkGameStatus(io, gameRoom, player, currentGuess, gameId);
 };

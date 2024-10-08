@@ -1,10 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { ValidateResult } from "./const";
 
-export interface CheckAnswerRequestBody {
-  guess: string;
-}
-
 export interface ValidatedCharacter {
   character: string;
   validateResult: ValidateResult;
@@ -30,8 +26,4 @@ export interface HandleDisconnectParams {
   gameRooms: GameRooms;
   io: Server;
   gameId: string;
-}
-
-export interface HandleWinningParams {
-  gameRoom: GameRooms["gameRoomId"];
 }
