@@ -1,7 +1,6 @@
-import { ValidateResult } from "../routes/check-answer/const";
-import { CharacterWithValidation } from "../routes/check-answer/interface";
-import { envConfig } from "../util";
-import { HandlePlayerGuessParams } from "./interface";
+import { envConfig } from "../../util";
+import { ValidateResult } from "../const";
+import { HandlePlayerGuessParams, ValidatedCharacter } from "../interface";
 
 export const handlePlayerGuess = ({
   player,
@@ -10,7 +9,7 @@ export const handlePlayerGuess = ({
   io,
   gameId,
 }: HandlePlayerGuessParams) => {
-  const validatedCharacters = [...currentGuess].map<CharacterWithValidation>(
+  const validatedCharacters = [...currentGuess].map<ValidatedCharacter>(
     (character) => ({
       character,
       validateResult: ValidateResult.Absent,

@@ -7,10 +7,11 @@ import {
   pickRandomWordFromList,
 } from "../util";
 import * as crypto from "node:crypto";
-import { handlePlayerGuess } from "./handlePlayerGuess";
-import { handleDisconnect } from "./handleDisconnect";
+import { handlePlayerGuess } from "./handler/handlePlayerGuess";
+import { handleDisconnect } from "./handler/handleDisconnect";
 
 export const createSocketIO = (server: http.Server, wordList: string[]) => {
+  // Resolving CORS error
   const io = new Server(server, {
     cors: {
       origin: "*",
@@ -37,7 +38,6 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
     // join available game room
     const gameRoom = gameRooms[gameId!];
     gameRoom.players[player.id] = [];
-    console.log(gameRoom.pickedWord);
     player.join(gameId);
     const isPlayerEnough =
       Object.keys(gameRoom.players).length === envConfig().requriedPlayers;

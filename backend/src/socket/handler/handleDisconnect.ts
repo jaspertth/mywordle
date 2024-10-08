@@ -1,11 +1,11 @@
-import { handleDisconnectParams } from "./interface";
+import { HandleDisconnectParams } from "../interface";
 
 export const handleDisconnect = ({
   gameId,
   gameRooms,
   io,
   player,
-}: handleDisconnectParams) => {
+}: HandleDisconnectParams) => {
   delete gameRooms[gameId].players[player.id];
   const opponentId = Object.keys(gameRooms[gameId].players)[0];
   if (opponentId) {

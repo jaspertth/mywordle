@@ -1,10 +1,18 @@
 import { Server, Socket } from "socket.io";
-import { CharacterWithValidation } from "../routes/check-answer/interface";
-import { handleDisconnect } from "./handleDisconnect";
+import { ValidateResult } from "./const";
+
+export interface CheckAnswerRequestBody {
+  guess: string;
+}
+
+export interface ValidatedCharacter {
+  character: string;
+  validateResult: ValidateResult;
+}
 
 export interface GameRooms {
   [gameRoomId: string]: {
-    players: { [playerId: string]: CharacterWithValidation[][] };
+    players: { [playerId: string]: ValidatedCharacter[][] };
     pickedWord: string;
   };
 }
@@ -17,13 +25,13 @@ export interface HandlePlayerGuessParams {
   gameId: string;
 }
 
-export interface handleDisconnectParams {
+export interface HandleDisconnectParams {
   player: Socket;
   gameRooms: GameRooms;
   io: Server;
   gameId: string;
 }
 
-export interface handleWinningParams {
+export interface HandleWinningParams {
   gameRoom: GameRooms["gameRoomId"];
 }

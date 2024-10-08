@@ -16,12 +16,11 @@ export const pickRandomWordFromList = (wordlist: string[]): string => {
 export const findAvailableGameRoom = (gameRooms: GameRooms) => {
   for (const gameId in gameRooms) {
     const gameRoom = gameRooms[gameId];
-    // Check if the game room has less than 2 players
     if (Object.keys(gameRoom.players).length < 2) {
       return gameId;
     }
   }
-  return null; // create one if no room available
+  return null;
 };
 
 export const envConfig = () => {
