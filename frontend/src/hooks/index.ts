@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../providers/socket-provider";
 import { ToastContext } from "../providers/toast-provider";
 import { checkWordExist, envConfig } from "../util";
@@ -8,10 +8,10 @@ import {
   UsedAlphabets,
   WinningEvent,
 } from "./interface";
+import { Socket } from "socket.io-client";
 
-export const useWordle = () => {
+export const useWordle = (socket: Socket) => {
   const [round, setRound] = useState<number>(0);
-  const [isGameEnd, setIsGameEnd] = useState<boolean>(false);
   const [currentGuess, setCurrentGuess] = useState<string>("");
   const [historyGuesses, setHstoryGuesses] = useState<
     CharacterWithValidation[][]
@@ -19,7 +19,6 @@ export const useWordle = () => {
   const [usedAlphabets, setUsedAlphabets] = useState<UsedAlphabets>({});
 
   const { updateContent } = useContext(ToastContext);
-  const { socket } = useContext(SocketContext);
 
   const validateGuessByAnswer = (): Promise<CharacterWithValidation[]> => {
     return new Promise((resolve) => {
@@ -53,17 +52,6 @@ export const useWordle = () => {
           resolve(validatedCharacters);
         }
       );
-
-      socket.once("winning", ({ type, message }: WinningEvent) => {
-        if (type === "draw") {
-          console.log("message", message);
-          updateContent(message);
-        } else {
-          updateContent(message === socket.id ? "you won" : "you lost");
-        }
-
-        setIsGameEnd(true);
-      });
     });
   };
 
@@ -91,11 +79,11 @@ export const useWordle = () => {
         return;
       }
 
-      const isWordExist = await checkWordExist(currentGuess);
-      if (!isWordExist) {
-        updateContent("Word not exist", 1500);
-        return;
-      }
+      // const isWordExist = await checkWordExist(currentGuess);
+      // if (!isWordExist) {
+      //   updateContent("Word not exist", 1500);
+      //   return;
+      // }
 
       const validatedGuess = await validateGuessByAnswer();
       addValidatedGuessToHistoryGuess(validatedGuess);
@@ -111,7 +99,6 @@ export const useWordle = () => {
 
   return {
     round,
-    isGameEnd,
     currentGuess,
     historyGuesses,
     usedAlphabets,

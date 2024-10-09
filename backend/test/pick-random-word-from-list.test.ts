@@ -1,4 +1,4 @@
-import { pickRandomWordFromList } from "../src/util"; // adjust this import to the actual file
+import { pickRandomWordFromList } from "../src/util";
 
 describe("pickRandomWordFromList", () => {
   it("should return a word from the provided list", () => {

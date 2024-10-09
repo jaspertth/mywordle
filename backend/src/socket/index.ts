@@ -29,37 +29,40 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
     player.emit("playerId", player.id);
 
     // Find or create a new game room
-    let gameId = findAvailableGameRoom(gameRooms);
-    if (!gameId) {
-      gameId = crypto.randomUUID();
-      gameRooms[gameId] = {
+    let gameRoomId = findAvailableGameRoom(gameRooms);
+    if (!gameRoomId) {
+      gameRoomId = crypto.randomUUID();
+      gameRooms[gameRoomId] = {
         players: {},
         pickedWord: pickRandomWordFromList(wordList),
       };
     }
-    console.log(gameRooms);
-    const gameRoom = gameRooms[gameId!];
+
+    player.emit("gameRoomId", gameRoomId);
+
+    const gameRoom = gameRooms[gameRoomId!];
 
     // Add the player to the game room
     gameRoom.players[player.id] = [];
-    player.join(gameId);
+    player.join(gameRoomId);
 
     const isPlayerEnough =
       Object.keys(gameRoom.players).length === envConfig().requriedPlayers;
-    io.to(gameId).emit("isPlayerEnough", isPlayerEnough);
+    io.to(gameRoomId).emit("isPlayerEnough", isPlayerEnough);
 
     player.on("disconnect", () =>
-      handleDisconnect({ gameId: gameId!, gameRooms, io, player })
+      handleDisconnect({ gameId: gameRoomId!, gameRooms, io, player })
     );
 
     player.on("playerGuess", (currentGuess: string) => {
       const lowerCaseCurrentGuess = currentGuess.toLowerCase();
       handlePlayerGuess({
+        wordList,
         player,
         currentGuess: lowerCaseCurrentGuess,
         gameRoom,
         io,
-        gameId: gameId!,
+        gameId: gameRoomId!,
       });
     });
   });

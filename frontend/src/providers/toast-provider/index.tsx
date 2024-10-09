@@ -10,7 +10,6 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [content, setContent] = useState<string>("");
 
   const updateContent = (newContent: string, duration: number = 0) => {
-    console.log(newContent, duration);
     setContent(newContent);
     if (duration > 0) {
       setTimeout(() => {

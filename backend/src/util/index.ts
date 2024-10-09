@@ -13,6 +13,13 @@ export const loadWordsFromJSON = (dictionarFilePath: string): string[] => {
   return jsonData.words;
 };
 
+export const checkWordExistence = (
+  wordList: string[],
+  word: string
+): boolean => {
+  return wordList.includes(word);
+};
+
 /**
  * Picks a random word from a list of words.
  * @param {string[]} wordlist - An array of words to choose from.
@@ -20,6 +27,7 @@ export const loadWordsFromJSON = (dictionarFilePath: string): string[] => {
  */
 export const pickRandomWordFromList = (wordlist: string[]): string => {
   const randomWord = wordlist[Math.floor(Math.random() * wordlist.length)];
+  console.log(randomWord);
   return randomWord;
 };
 

@@ -7,21 +7,20 @@ import { ToastContext } from "../providers/toast-provider";
 import { envConfig } from "../util";
 import { SocketContext } from "../providers/socket-provider";
 import { OpponentBoard } from "./opponent-board";
-import { CharacterWithValidation } from "../hooks/interface";
+import { CharacterWithValidation, WinningEvent } from "../hooks/interface";
+import AppBar from "@mui/material/AppBar";
+import Typography from "@mui/material/Typography";
 
 export const Wordle: React.FC = () => {
-  const {
-    round,
-    isGameEnd,
-    currentGuess,
-    historyGuesses,
-    usedAlphabets,
-    handleKeyup,
-  } = useWordle();
-
   const { updateContent } = useContext(ToastContext);
   const { socket } = useContext(SocketContext);
+
+  const { round, currentGuess, historyGuesses, usedAlphabets, handleKeyup } =
+    useWordle(socket);
+
+  const [isGameEnd, setIsGameEnd] = useState<boolean>(false);
   const [isPlayerEnough, setIsPlayerEnough] = useState<boolean>(false);
+  const [gameRoomId, setGameRoomId] = useState<string>("");
   const [opponentHistoryGuesses, setOpponentHistoryGuesses] = useState<
     CharacterWithValidation[][]
   >([]);
@@ -29,8 +28,22 @@ export const Wordle: React.FC = () => {
   useEffect(() => {
     window.addEventListener("keyup", handleKeyup);
 
+    socket.once("winning", ({ type, message }: WinningEvent) => {
+      if (type === "draw") {
+        updateContent(message);
+      } else {
+        updateContent(message === socket.id ? "you won" : "you lost");
+      }
+
+      setIsGameEnd(true);
+    });
+
+    socket.once("opponentDisconnected", (message: string) => {
+      setIsGameEnd(true);
+      updateContent(message);
+    });
+
     if (isGameEnd) {
-      socket.disconnect();
       window.removeEventListener("keyup", handleKeyup);
     }
 
@@ -41,7 +54,26 @@ export const Wordle: React.FC = () => {
     socket.on("isPlayerEnough", (isPlayerEnough: boolean) => {
       setIsPlayerEnough(isPlayerEnough);
     });
+
+    socket.on(
+      "opponentProgress",
+      (opponentProgress: CharacterWithValidation[]) => {
+        setOpponentHistoryGuesses((prev) => {
+          return [...prev, opponentProgress];
+        });
+      }
+    );
+
+    socket.on("wordExistence", (message: string) => {
+      updateContent(message, 1500);
+    });
+
+    socket.once("gameRoomId", (gameRoomId: string) => {
+      setGameRoomId(gameRoomId);
+    });
+
     return () => {
+      socket.off("opponentProgress");
       socket.off("isPlayerEnough");
     };
   }, [socket, updateContent, setIsPlayerEnough]);
@@ -56,23 +88,23 @@ export const Wordle: React.FC = () => {
     }
   }, [isPlayerEnough, round]);
 
-  useEffect(() => {
-    socket.on(
-      "opponentProgress",
-      (opponentProgress: CharacterWithValidation[]) => {
-        setOpponentHistoryGuesses((prev) => {
-          return [...prev, opponentProgress];
-        });
-      }
-    );
-
-    return () => {
-      socket.off("opponentProgress");
-    };
-  }, [socket]);
-
   return (
     <div>
+      <AppBar
+        position="static"
+        sx={{
+          backgroundColor: "inherit",
+          color: "black",
+          height: "80px",
+          justifyContent: "center",
+          marginBottom: "10px",
+        }}
+      >
+        <Typography fontWeight="bold" fontSize="25px">
+          Wordle
+        </Typography>
+        <Typography fontSize="10px">Room ID: {gameRoomId}</Typography>
+      </AppBar>
       {!!socket && isPlayerEnough && (
         <>
           <GameBoard

@@ -4,7 +4,7 @@ import { envConfig } from "../../util";
 import { SocketContextType } from "./interface";
 
 export const SocketContext = createContext<SocketContextType>({
-  socket: io(),
+  socket: {} as Socket,
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({

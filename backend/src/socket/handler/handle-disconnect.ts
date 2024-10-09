@@ -2,8 +2,8 @@ import { HandleDisconnectParams } from "../interface";
 
 /**
  * Handles the disconnection of a player from the game.
- * This function removes the player from the game room's player list, disconnects their opponent if any,
- * and deletes the game room if there are no remaining players.
+ * This function removes the player from the game room's player list,
+ * disconnects their opponent if any, and deletes the game room.
  *
  * @param {HandleDisconnectParams} params - The parameters needed for handling the disconnect.
  * @param {string} params.gameId - The ID of the game room from which the player is disconnecting.
@@ -17,12 +17,13 @@ export const handleDisconnect = ({
   gameRooms,
   io,
   player,
-}: HandleDisconnectParams): boolean => {
+}: HandleDisconnectParams): string | undefined => {
   delete gameRooms[gameId].players[player.id];
   const opponentId = Object.keys(gameRooms[gameId].players)[0];
-  if (opponentId) {
+  if (!!opponentId) {
+    io.to(gameId).emit("opponentDisconnected", "your opponent left the game. refresh to join another game");
     io.sockets.sockets.get(opponentId)?.disconnect(true);
   }
   delete gameRooms[gameId];
-  return true;
+  return opponentId;
 };
