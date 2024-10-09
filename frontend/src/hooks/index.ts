@@ -1,9 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
-import { CharacterWithValidation, UsedAlphabets } from "./interface";
-import { ValidateResult } from "./const";
-import { ToastContext } from "../providers/toast-provider";
-import { envConfig } from "../util";
+import { useContext, useState } from "react";
 import { SocketContext } from "../providers/socket-provider";
+import { ToastContext } from "../providers/toast-provider";
+import { checkWordExist, envConfig } from "../util";
+import { ValidateResult } from "./const";
+import {
+  CharacterWithValidation,
+  UsedAlphabets,
+  WinningEvent,
+} from "./interface";
 
 export const useWordle = () => {
   const [round, setRound] = useState<number>(0);
@@ -17,14 +21,6 @@ export const useWordle = () => {
   const { updateContent } = useContext(ToastContext);
   const { socket } = useContext(SocketContext);
 
-  const checkWordExist = async (word: string) => {
-    const response = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
-    );
-    const status = response.status;
-    return status === 200;
-  };
-
   const validateGuessByAnswer = (): Promise<CharacterWithValidation[]> => {
     return new Promise((resolve) => {
       socket.emit("playerGuess", currentGuess);
@@ -32,50 +28,38 @@ export const useWordle = () => {
         "validated",
         (validatedCharacters: CharacterWithValidation[]) => {
           setUsedAlphabets((prev) => {
-            const newUsedAlphabets = prev;
+            const newUsedAlphabets = { ...prev };
+
             validatedCharacters.forEach((validatedChar) => {
               const prevValidatedResult =
                 newUsedAlphabets[validatedChar.character];
-              switch (validatedChar.validateResult) {
-                case ValidateResult.Correct:
-                  newUsedAlphabets[validatedChar.character] =
-                    ValidateResult.Correct;
-                  break;
-                case ValidateResult.Present:
-                  if (prevValidatedResult !== ValidateResult.Correct) {
-                    newUsedAlphabets[validatedChar.character] =
-                      ValidateResult.Present;
-                  }
-                  break;
-                case ValidateResult.Absent:
-                  if (
-                    prevValidatedResult !== ValidateResult.Correct &&
-                    prevValidatedResult !== ValidateResult.Present
-                  ) {
-                    newUsedAlphabets[validatedChar.character] =
-                      ValidateResult.Absent;
-                  }
-                  break;
+              if (
+                validatedChar.validateResult === ValidateResult.Correct ||
+                (validatedChar.validateResult === ValidateResult.Present &&
+                  prevValidatedResult !== ValidateResult.Correct) ||
+                (validatedChar.validateResult === ValidateResult.Absent &&
+                  prevValidatedResult !== ValidateResult.Correct &&
+                  prevValidatedResult !== ValidateResult.Present)
+              ) {
+                newUsedAlphabets[validatedChar.character] =
+                  validatedChar.validateResult;
               }
             });
+
             return newUsedAlphabets;
           });
-
           setRound((prev) => prev + 1);
 
           resolve(validatedCharacters);
         }
       );
-      socket.once("winning", ({ type, message }) => {
+
+      socket.once("winning", ({ type, message }: WinningEvent) => {
         if (type === "draw") {
           console.log("message", message);
           updateContent(message);
-        } else if (type === "end") {
-          if (message === socket.id) {
-            updateContent("you won");
-          } else {
-            updateContent("you lost");
-          }
+        } else {
+          updateContent(message === socket.id ? "you won" : "you lost");
         }
 
         setIsGameEnd(true);

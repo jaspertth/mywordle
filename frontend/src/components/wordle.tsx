@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useWordle } from "../hooks";
 import { GameBoard } from "./game-board";
 import { Keyboard } from "./keyboard";
@@ -30,31 +30,31 @@ export const Wordle: React.FC = () => {
     window.addEventListener("keyup", handleKeyup);
 
     if (isGameEnd) {
+      socket.disconnect();
       window.removeEventListener("keyup", handleKeyup);
     }
 
     return () => window.removeEventListener("keyup", handleKeyup);
-  }, [handleKeyup, socket, updateContent]);
-
-  useEffect(() => {
-    if (round >= envConfig().maxRound) {
-      updateContent("waiting for opponent to finish");
-    }
-  }, [round]);
+  }, [handleKeyup, socket]);
 
   useEffect(() => {
     socket.on("isPlayerEnough", (isPlayerEnough: boolean) => {
       setIsPlayerEnough(isPlayerEnough);
-      if (!isPlayerEnough) {
-        updateContent("waiting for opponent to join");
-      } else {
-        updateContent("");
-      }
     });
     return () => {
       socket.off("isPlayerEnough");
     };
   }, [socket, updateContent, setIsPlayerEnough]);
+
+  useEffect(() => {
+    if (!isPlayerEnough) {
+      updateContent("waiting for opponent to join");
+    } else if (round >= envConfig().maxRound) {
+      updateContent("waiting for opponent to finish");
+    } else {
+      updateContent("");
+    }
+  }, [isPlayerEnough, round]);
 
   useEffect(() => {
     socket.on(

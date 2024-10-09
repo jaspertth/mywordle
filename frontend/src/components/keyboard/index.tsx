@@ -1,11 +1,9 @@
 import React from "react";
 import { alphabetArray } from "./const";
-import { UsedAlphabets } from "../../hooks/interface";
 import { KeyboardProps } from "./interface";
 
 export const Keyboard: React.FC<KeyboardProps> = ({
   usedAlphabets,
-  handleKeyup,
 }) => {
   const handleClick = (alphabet: string) => {
     // Simulate the KeyboardEvent when a button is clicked

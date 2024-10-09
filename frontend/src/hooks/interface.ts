@@ -8,3 +8,8 @@ export interface CharacterWithValidation {
 export interface UsedAlphabets {
   [key: string]: ValidateResult;
 }
+
+export interface WinningEvent {
+  type: "draw" | "end";
+  message: string;
+}

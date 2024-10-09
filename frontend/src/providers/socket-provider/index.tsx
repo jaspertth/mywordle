@@ -1,8 +1,7 @@
-// src/SocketContext.tsx
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { SocketContextType } from "./interface";
 import { envConfig } from "../../util";
+import { SocketContextType } from "./interface";
 
 export const SocketContext = createContext<SocketContextType>({
   socket: io(),

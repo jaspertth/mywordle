@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode } from "react";
+import { createContext, ReactNode, useState } from "react";
 import { ToastContextType } from "./interface";
 
 export const ToastContext = createContext<ToastContextType>({
