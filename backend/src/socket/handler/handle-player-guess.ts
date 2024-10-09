@@ -6,7 +6,6 @@ import {
   HandlePlayerGuessParams,
   ValidatedCharacter,
 } from "../interface";
-import { checkWordExistence } from "../../util";
 
 /**
  * Counts the frequency of each character in the given word.
@@ -110,27 +109,19 @@ export const handlePlayerGuess = ({
   io,
   gameId,
 }: HandlePlayerGuessParams) => {
-  const isWordExist = checkWordExistence(wordList, currentGuess);
-  if (!isWordExist) {
-    player.emit("wordExistence", "not in word list");
-  } else {
-    // Store the validated characters in the player's history
-    const validatedCharacters = validateGuess(
-      currentGuess,
-      gameRoom.pickedWord
-    );
-    gameRoom.players[player.id].push(validatedCharacters);
+  // Store the validated characters in the player's history
+  const validatedCharacters = validateGuess(currentGuess, gameRoom.pickedWord);
+  gameRoom.players[player.id].push(validatedCharacters);
 
-    //update the player with the validated characters
-    player.emit("validated", validatedCharacters);
+  //update the player with the validated characters
+  player.emit("validated", validatedCharacters);
 
-    //update the opponent with the validation result only
-    const validationResultOnly = validatedCharacters.map((validatedChar) => ({
-      validatedChar: "",
-      validateResult: validatedChar.validateResult,
-    }));
-    player.to(gameId!).emit("opponentProgress", validationResultOnly);
+  //update the opponent with the validation result only
+  const validationResultOnly = validatedCharacters.map((validatedChar) => ({
+    validatedChar: "",
+    validateResult: validatedChar.validateResult,
+  }));
+  player.to(gameId!).emit("opponentProgress", validationResultOnly);
 
-    checkGameStatus(io, gameRoom, player, currentGuess, gameId);
-  }
+  checkGameStatus(io, gameRoom, player, currentGuess, gameId);
 };
