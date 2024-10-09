@@ -1,10 +1,10 @@
 import React from "react";
 import { alphabetArray } from "./const";
 import { KeyboardProps } from "./interface";
+import Icon from "@mui/material/Icon";
+import BackspaceIcon from "@mui/icons-material/Backspace";
 
-export const Keyboard: React.FC<KeyboardProps> = ({
-  usedAlphabets,
-}) => {
+export const Keyboard: React.FC<KeyboardProps> = ({ usedAlphabets }) => {
   const handleClick = (alphabet: string) => {
     // Simulate the KeyboardEvent when a button is clicked
     const event = new KeyboardEvent("keyup", {
@@ -71,7 +71,9 @@ export const Keyboard: React.FC<KeyboardProps> = ({
           className="key backspace"
           onClick={() => handleClick("Backspace")}
         >
-          Delete
+          <Icon >
+            <BackspaceIcon fontSize="small"/>
+          </Icon>
         </button>
       </div>
     </div>

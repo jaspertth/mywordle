@@ -8,7 +8,7 @@ A backend server for a multiplayer version of the popular word guessing game, Wo
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Technologies](#technologies)
-  - [Command](#command)
+  - [Commands](#commands)
 
 ## Features
 
@@ -26,7 +26,7 @@ A backend server for a multiplayer version of the popular word guessing game, Wo
 - **Jest** - Testing framework for unit and integration testing.
 - **dotenv** - Module to load environment variables from a `.env` file.
 
-## Command
+## Commands
 
 To start the server at `localhost:4000`.
 

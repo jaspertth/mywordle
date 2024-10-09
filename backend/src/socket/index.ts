@@ -37,7 +37,7 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
         pickedWord: pickRandomWordFromList(wordList),
       };
     }
-
+    console.log(gameRooms);
     const gameRoom = gameRooms[gameId!];
 
     // Add the player to the game room
@@ -52,9 +52,16 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
       handleDisconnect({ gameId: gameId!, gameRooms, io, player })
     );
 
-    player.on("playerGuess", (currentGuess: string) =>
-      handlePlayerGuess({ player, currentGuess, gameRoom, io, gameId: gameId! })
-    );
+    player.on("playerGuess", (currentGuess: string) => {
+      const lowerCaseCurrentGuess = currentGuess.toLowerCase();
+      handlePlayerGuess({
+        player,
+        currentGuess: lowerCaseCurrentGuess,
+        gameRoom,
+        io,
+        gameId: gameId!,
+      });
+    });
   });
   return io;
 };
