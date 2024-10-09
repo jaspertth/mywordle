@@ -27,7 +27,6 @@ export const checkWordExistence = (
  */
 export const pickRandomWordFromList = (wordlist: string[]): string => {
   const randomWord = wordlist[Math.floor(Math.random() * wordlist.length)];
-  console.log(randomWord);
   return randomWord;
 };
 
