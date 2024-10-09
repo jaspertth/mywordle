@@ -1,14 +1,9 @@
-import { useContext, useEffect, useState } from "react";
-import { SocketContext } from "../providers/socket-provider";
+import { useContext, useState } from "react";
+import { Socket } from "socket.io-client";
 import { ToastContext } from "../providers/toast-provider";
 import { checkWordExist, envConfig } from "../util";
 import { ValidateResult } from "./const";
-import {
-  CharacterWithValidation,
-  UsedAlphabets,
-  WinningEvent,
-} from "./interface";
-import { Socket } from "socket.io-client";
+import { CharacterWithValidation, UsedAlphabets } from "./interface";
 
 export const useWordle = (socket: Socket) => {
   const [round, setRound] = useState<number>(0);
@@ -79,11 +74,11 @@ export const useWordle = (socket: Socket) => {
         return;
       }
 
-      // const isWordExist = await checkWordExist(currentGuess);
-      // if (!isWordExist) {
-      //   updateContent("Word not exist", 1500);
-      //   return;
-      // }
+      const isWordExist = await checkWordExist(currentGuess);
+      if (!isWordExist) {
+        updateContent("Word not exist", 1500);
+        return;
+      }
 
       const validatedGuess = await validateGuessByAnswer();
       addValidatedGuessToHistoryGuess(validatedGuess);

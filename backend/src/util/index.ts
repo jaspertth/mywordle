@@ -13,13 +13,6 @@ export const loadWordsFromJSON = (dictionarFilePath: string): string[] => {
   return jsonData.words;
 };
 
-export const checkWordExistence = (
-  wordList: string[],
-  word: string
-): boolean => {
-  return wordList.includes(word);
-};
-
 /**
  * Picks a random word from a list of words.
  * @param {string[]} wordlist - An array of words to choose from.
