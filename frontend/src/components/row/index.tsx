@@ -11,18 +11,18 @@ export const Row: React.FC<RowProps> = ({ historyGuess, currentGuess }) => {
         {currentGuessCharacters.map((c, i) => (
           <Square key={i} inputCharacter={c} />
         ))}
-        {Array.from({ length: envConfig().maxWordLength - currentGuessCharacters.length }).map(
-          (_, i) => (
-            <Square key={i} />
-          )
-        )}
+        {Array.from({
+          length: envConfig().maxWordLength - currentGuessCharacters.length,
+        }).map((_, i) => (
+          <Square key={i} />
+        ))}
       </div>
     );
   }
   return (
     <div className="row history">
       {Array.from({ length: envConfig().maxWordLength }).map((_, i) => (
-        <Square key={i} characterWithValidation={historyGuess?.[i]} />
+        <Square key={i} index={i} characterWithValidation={historyGuess?.[i]} />
       ))}
     </div>
   );

@@ -1,3 +1,11 @@
+:root {
+  --color-correct: #38cb82;
+  --color-present: #d4d400;
+  --color-absent: #5f5f5f;
+  --default-color-border: #bbbbbb;
+  --white-color-text: #ffffff;
+}
+
 body {
   text-align: center;
   margin: 0;
@@ -8,11 +16,12 @@ body {
   text-align: center;
   justify-content: center;
 }
+
 .row > div {
   display: block;
   width: 60px;
   height: 60px;
-  border: 1px solid #bbbbbb;
+  border: 1px solid var(--default-color-border);
   margin: 4px;
   text-align: center;
   text-transform: uppercase;
@@ -24,38 +33,25 @@ body {
   animation: virbrating 0.1s ease-in-out forwards;
 }
 
+.row > div.correct,
+.row > div.present,
+.row > div.absent {
+  animation: flipping 0.3s ease forwards;
+}
+
 .row > div.correct {
-  --background-color: #38cb82;
-  --border-color: #38cb82;
-  animation: fliping 0.3s ease forwards;
+  --background-color: var(--color-correct);
+  --border-color: var(--color-correct);
 }
 
 .row > div.present {
-  --background-color: #d4d400;
-  --border-color: #d4d400;
-  animation: fliping 0.3s ease forwards;
+  --background-color: var(--color-present);
+  --border-color: var(--color-present);
 }
 
 .row > div.absent {
-  --background-color: #5f5f5f;
-  --border-color: #5f5f5f;
-  animation: fliping 0.3s ease forwards;
-}
-
-.row > div:nth-child(2) {
-  animation-delay: 0.3s;
-}
-
-.row > div:nth-child(3) {
-  animation-delay: 0.6s;
-}
-
-.row > div:nth-child(4) {
-  animation-delay: 0.9s;
-}
-
-.row > div:nth-child(5) {
-  animation-delay: 1.2s;
+  --background-color: var(--color-absent);
+  --border-color: var(--color-absent);
 }
 
 .keyboard {
@@ -74,7 +70,7 @@ body {
   margin: 5px;
   width: 40px;
   height: 50px;
-  background-color: #bbbbbb;
+  background-color: var(--default-color-border);
   border: none;
   display: inline-block;
   border-radius: 6px;
@@ -85,10 +81,7 @@ body {
   outline: none;
 }
 
-.keyboard-row > button.enter {
-  width: 70px;
-}
-
+.keyboard-row > button.enter,
 .keyboard-row > button.backspace {
   width: 70px;
 }
@@ -98,18 +91,18 @@ body {
 }
 
 .keyboard-row > button.correct {
-  background-color: #38cb82;
-  color: #ffffff;
+  background-color: var(--color-correct);
+  color: var(--white-color-text);
 }
 
 .keyboard-row > button.present {
-  background-color: #d4d400;
-  color: #ffffff;
+  background-color: var(--color-present);
+  color: var(--white-color-text);
 }
 
 .keyboard-row > button.absent {
-  background-color: #5f5f5f;
-  color: #ffffff;
+  background-color: var(--color-absent);
+  color: var(--white-color-text);
 }
 
 .toast {
@@ -120,14 +113,15 @@ body {
   width: auto;
   padding: 10px;
   background-color: #000000;
-  color: #ffffff;
+  color: var(--white-color-text);
   text-align: center;
   text-transform: uppercase;
 }
+
 .opponent {
   position: fixed;
   right: 1%;
-  top: 1%; 
+  top: 1%;
 }
 
 .opponent > .row {
@@ -136,27 +130,25 @@ body {
 }
 
 .opponent > .row > div {
-  width: 30px; 
+  width: 30px;
   height: 30px;
 }
-@keyframes fliping {
+
+@keyframes flipping {
   0% {
     transform: rotateX(0);
   }
-  45% {
-    transform: rotateX(90deg);
-  }
-  55% {
+  50% {
     transform: rotateX(90deg);
     background-color: var(--background-color);
     border-color: var(--border-color);
-    color: #ffffff;
+    color: var(--white-color-text);
   }
   100% {
     transform: rotateX(0);
     background: var(--background-color);
     border-color: var(--border-color);
-    color: #ffffff;
+    color: var(--white-color-text);
   }
 }
 

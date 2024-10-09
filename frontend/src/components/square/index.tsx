@@ -2,6 +2,7 @@ import React from "react";
 import SquareProps from "./interface";
 
 export const Square: React.FC<SquareProps> = ({
+  index,
   characterWithValidation,
   inputCharacter,
 }) => {
@@ -10,7 +11,15 @@ export const Square: React.FC<SquareProps> = ({
   }
 
   return (
-    <div className={characterWithValidation?.validateResult}>
+    <div
+      style={
+        {
+          "--i": index,
+          animationDelay: `calc(var(--i) * 0.3s)`,
+        } as React.CSSProperties
+      }
+      className={characterWithValidation?.validateResult}
+    >
       {characterWithValidation?.character}
     </div>
   );
