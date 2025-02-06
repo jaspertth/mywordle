@@ -11,9 +11,7 @@ const path_1 = __importDefault(require("path"));
  */
 const envConfig = () => {
     const port = process.env.PORT ? +process.env.PORT : 4000;
-    const dictionaryFilePath = process.env.DICTIONARY_FILE_PATH
-        ? path_1.default.join(__dirname, "..", "..", process.env.DICTIONARY_FILE_PATH)
-        : path_1.default.join(__dirname, "..", "data", "dictionary.json");
+    const dictionaryFilePath = path_1.default.join(process.cwd(), "dictionary.json");
     const maxWordLength = process.env.MAX_WORD_LENGTH
         ? +process.env.MAX_WORD_LENGTH
         : 5;

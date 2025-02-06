@@ -4,8 +4,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "build": "rimraf dist && tsc",
     "dev": "nodemon ./src/index.ts",
-    "build": "rimraf dist && tsc"
+    "prod": "node dist/index.js"
+
   },
   "keywords": [],
   "author": "",
