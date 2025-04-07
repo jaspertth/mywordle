@@ -24,5 +24,14 @@ export const envConfig = (): EnvironmentVariables => {
   const requriedPlayers = process.env.REQUIRED_PLAYERS
     ? +process.env.REQUIRED_PLAYERS
     : 2;
-  return { port, dictionaryFilePath, maxWordLength, maxRound, requriedPlayers };
+
+  const serverUrl = process.env.SERVER_URL ?? `http://localhost:${port}`;
+  return {
+    port,
+    dictionaryFilePath,
+    maxWordLength,
+    maxRound,
+    requriedPlayers,
+    serverUrl,
+  };
 };

@@ -4,6 +4,7 @@ import http from "http";
 import { loadWordsFromJSON } from "./util";
 import { createSocketIO } from "./socket";
 import { envConfig } from "./config";
+import { createKeepAliveCron } from "./cronjob";
 
 dotenv.config();
 
@@ -23,4 +24,7 @@ app.get("/", (req: Request, res: Response) => {
   res.status(200).send("OK");
 });
 
-server.listen(port, () => console.log(`Listening port ${port}.`));
+server.listen(port, () => {
+  console.log(`Listening port ${port}.`);
+  createKeepAliveCron().start();
+});
