@@ -8,7 +8,12 @@ import { EnvironmentVariables } from "./interface";
 export const envConfig = (): EnvironmentVariables => {
   const port = process.env.PORT ? +process.env.PORT : 4000;
 
-  const dictionaryFilePath = path.join(process.cwd(), "dictionary.json");
+  const dictionaryFilePath = path.resolve(
+    __dirname,
+    "..",
+    "data",
+    "dictionary.json"
+  );
 
   const maxWordLength = process.env.MAX_WORD_LENGTH
     ? +process.env.MAX_WORD_LENGTH
