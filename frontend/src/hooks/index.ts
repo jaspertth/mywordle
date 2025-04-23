@@ -17,6 +17,7 @@ export const useWordle = (socket: Socket) => {
 
   const validateGuessByAnswer = (): Promise<CharacterWithValidation[]> => {
     return new Promise((resolve) => {
+      window.removeEventListener("keyup", handleKeyup);
       socket.emit("playerGuess", currentGuess);
       socket.once(
         "validated",
@@ -47,6 +48,7 @@ export const useWordle = (socket: Socket) => {
           resolve(validatedCharacters);
         }
       );
+      window.addEventListener("keyup", handleKeyup);
     });
   };
 

@@ -25,13 +25,19 @@ export const envConfig = (): EnvironmentVariables => {
     ? +process.env.REQUIRED_PLAYERS
     : 2;
 
-  const serverUrl = process.env.SERVER_URL ?? `http://localhost:${port}`;
+  const pcPlayerJoinDelayMs = process.env.PC_PLAYER_JOIN_DELAY_MS
+    ? +process.env.PC_PLAYER_JOIN_DELAY_MS
+    : 7000;
+
+  const serverUrl = process.env.SERVER_URL || `http://localhost:${port}`;
+
   return {
     port,
     dictionaryFilePath,
     maxWordLength,
     maxRound,
     requriedPlayers,
+    pcPlayerJoinDelayMs,
     serverUrl,
   };
 };

@@ -102,7 +102,6 @@ const checkGameStatus = (
 };
 
 export const handlePlayerGuess = ({
-  wordList,
   player,
   currentGuess,
   gameRoom,

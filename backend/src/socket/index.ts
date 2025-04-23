@@ -6,6 +6,7 @@ import * as crypto from "node:crypto";
 import { handlePlayerGuess } from "./handler/handle-player-guess";
 import { handleDisconnect } from "./handler/handle-disconnect";
 import { envConfig } from "../config";
+import { pcManager } from "../pc";
 
 /**
  * Initializes Socket.IO server and manages game room logic.
@@ -32,32 +33,38 @@ export const createSocketIO = (server: http.Server, wordList: string[]) => {
     let gameRoomId = findAvailableGameRoom(gameRooms);
     if (!gameRoomId) {
       gameRoomId = crypto.randomUUID();
+      const pickedWord = pickRandomWordFromList(wordList);
+      console.log(pickedWord);
       gameRooms[gameRoomId] = {
         players: {},
-        pickedWord: pickRandomWordFromList(wordList),
+        pickedWord,
       };
     }
-
-    player.emit("gameRoomId", gameRoomId);
-
-    const gameRoom = gameRooms[gameRoomId!];
-
+    const gameRoom = gameRooms[gameRoomId];
     // Add the player to the game room
     gameRoom.players[player.id] = [];
     player.join(gameRoomId);
+    player.emit("gameRoomId", gameRoomId);
+    // Check if the room has only one player
+    const playerCount = Object.keys(gameRoom.players).length;
+    if (playerCount < envConfig().requriedPlayers) {
+      // PC player join grameroom if not enough players for some seconds
+      io.to(gameRoomId).emit("isPlayerEnough", false);
+      pcManager.startJoinTimer(gameRoomId, wordList);
+    } else {
+      // Cancel PC player join timer if a enough players join
+      io.to(gameRoomId).emit("isPlayerEnough", true);
+      pcManager.cancelJoinTimer(gameRoomId);
+    }
 
-    const isPlayerEnough =
-      Object.keys(gameRoom.players).length === envConfig().requriedPlayers;
-    io.to(gameRoomId).emit("isPlayerEnough", isPlayerEnough);
-
-    player.on("disconnect", () =>
-      handleDisconnect({ gameId: gameRoomId!, gameRooms, io, player })
-    );
+    player.on("disconnect", () => {
+      handleDisconnect({ gameId: gameRoomId!, gameRooms, io, player });
+      console.log(gameRooms);
+    });
 
     player.on("playerGuess", (currentGuess: string) => {
       const lowerCaseCurrentGuess = currentGuess.toLowerCase();
       handlePlayerGuess({
-        wordList,
         player,
         currentGuess: lowerCaseCurrentGuess,
         gameRoom,

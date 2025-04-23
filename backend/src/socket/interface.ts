@@ -14,7 +14,6 @@ export interface GameRooms {
 }
 
 export interface HandlePlayerGuessParams {
-  wordList: string[];
   player: Socket;
   currentGuess: string;
   gameRoom: GameRooms["gameRoomId"];

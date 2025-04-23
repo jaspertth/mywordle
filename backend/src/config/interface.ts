@@ -4,5 +4,6 @@ export interface EnvironmentVariables {
   maxWordLength: number;
   maxRound: number;
   requriedPlayers: number;
+  pcPlayerJoinDelayMs: number;
   serverUrl: string;
 }
