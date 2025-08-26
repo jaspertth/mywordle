@@ -6,4 +6,6 @@ export interface EnvironmentVariables {
   requriedPlayers: number;
   pcPlayerJoinDelayMs: number;
   serverUrl: string;
+  maxDisconnectionDuration: number;
+  corsOrigin: string | RegExp;
 }

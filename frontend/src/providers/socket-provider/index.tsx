@@ -15,6 +15,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const socket = io(envConfig().serverUrl, {
       reconnection: false,
+      query: {
+        mode: "pve",
+        difficulty: "easy",
+      },
     });
     setSocket(socket);
 

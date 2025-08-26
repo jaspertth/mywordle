@@ -31,6 +31,15 @@ export const envConfig = (): EnvironmentVariables => {
 
   const serverUrl = process.env.SERVER_URL || `http://localhost:${port}`;
 
+  const maxDisconnectionDuration = process.env.MAX_DISCONNECTION_DURATION
+    ? +process.env.MAX_DISCONNECTION_DURATION
+    : 15000;
+
+  // Get CORS origin pattern from environment or use default
+  const corsOrigin = process.env.CORS_ORIGIN_REGEX
+    ? new RegExp(process.env.CORS_ORIGIN_REGEX)
+    : "*";
+
   return {
     port,
     dictionaryFilePath,
@@ -39,5 +48,7 @@ export const envConfig = (): EnvironmentVariables => {
     requriedPlayers,
     pcPlayerJoinDelayMs,
     serverUrl,
+    maxDisconnectionDuration,
+    corsOrigin,
   };
 };

@@ -1,4 +1,5 @@
 import { envConfig } from "../config";
+import { PcPlayerCreateParams, PcPlayerJoinParams } from "./interface";
 import { PCPlayer } from "./pc-player";
 
 export class PCManager {
@@ -11,20 +12,25 @@ export class PCManager {
    * Track an idle gameroom
    * @param gameRoomId The gameroom ID
    * @param wordList The word list
+   * @param gameDifficulty The game difficulty
    */
-  public startJoinTimer(gameRoomId: string, wordList: string[]): void {
-    if (this.joinTimers.has(gameRoomId)) {
-      return;
-    }
+  public pcPlayercreate(params: PcPlayerCreateParams): PCManager {
+    const { gameRoomId, wordList, gameDifficulty } = params;
+    // Create a PC player and join the game
+    const pcPlayer = new PCPlayer(wordList, gameDifficulty);
+    this.pcPlayers.set(gameRoomId, pcPlayer);
+    return this;
+  }
 
-    // Set a timeout to join with a PC player after 7 seconds
-    const timeout = setTimeout(() => {
-      // Create a PC player and join the game
-      const pcPlayer = new PCPlayer(wordList);
-      this.pcPlayers.set(gameRoomId, pcPlayer);
-      this.joinTimers.delete(gameRoomId);
-    }, envConfig().pcPlayerJoinDelayMs);
-    this.joinTimers.set(gameRoomId, timeout);
+  public pcPlayerJoin(params: PcPlayerJoinParams): void {
+    const { gameRoomId, gameRooms } = params;
+    // Create a PC player and join the game
+    const pcPlayer = this.pcPlayers.get(gameRoomId);
+    if (!!pcPlayer) {
+      // Add the player to the game room
+      const gameRoom = gameRooms[gameRoomId];
+      gameRoom.players[pcPlayer.pcPlayerSocketClient.id!] = [];
+    }
   }
 
   /**
